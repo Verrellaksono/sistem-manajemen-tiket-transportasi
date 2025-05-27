@@ -1,6 +1,8 @@
 #include <iostream>
 #include <iomanip>
 #include <queue>
+#include <algorithm>
+#include <cctype>
 using namespace std;
 
 //Struct Transportasi
@@ -27,6 +29,14 @@ Tiket* headTiket = NULL;
 
 //Queue 
 queue<Tiket*> queuePembayaran;
+
+//Fungsi menjadikan teks menjadi kecil
+string lowerCase(string teks) {
+    transform(teks.begin(), teks.end(), teks.begin(), [](unsigned char c) { 
+		return tolower(c); 
+		});
+    return teks;
+}
 
 //Fungsi Menampilkan Jadwal Tranportasi Berdasarkan Tujuan atau Waktu Keberangkatan
 void pencarianJadwal(Transportasi data[], int jumlahData){
@@ -58,7 +68,7 @@ void pencarianJadwal(Transportasi data[], int jumlahData){
 				cout << string(76, '-') << endl;
 				
 				for(int i=0; i<jumlahData; i++){
-					if(data[i].tujuan == tujuan){		 
+					if(lowerCase(data[i].tujuan) == lowerCase(tujuan)){		 
 						// Data Tabel
 						cout << "|" << setw(10) << data[i].id_jadwal
 							 << "|" << setw(20) << data[i].jenis_transportasi
@@ -125,6 +135,7 @@ void pencarianJadwal(Transportasi data[], int jumlahData){
 	system("CLS");
 }
 
+//Fungsi untuk pemesanan tiket
 void pesanTiket(Transportasi data[], int jumlahData){
 	//Variabel
 	int id_pemesanan, id_jadwal, jml_kursi;
@@ -165,29 +176,29 @@ void pesanTiket(Transportasi data[], int jumlahData){
         	if (data[i].kapasitas >= jml_kursi) {
 	            data[i].kapasitas -= jml_kursi;
 	            cout << "Pemesanan berhasil!" << endl;
+	            
+	            // Menyimpan ke linked list
+			    Tiket* tiket = new Tiket;
+			    tiket->id_pemesanan = id_pemesanan;
+			    tiket->nama = nama;
+			    tiket->id_jadwal = id_jadwal;
+			    tiket->jml_kursi = jml_kursi;
+			    tiket->status = "Belum Bayar";
+			    tiket->next = NULL;
+			    
+			    if (headTiket == NULL) {
+			        headTiket = tiket;
+			    } else {
+			        Tiket* temp = headTiket;
+			        while (temp->next != NULL) {
+			            temp = temp->next;
+			        }
+			        temp->next = tiket;
+			    }
 	        } else {
 	            cout << "Kapasitas tidak mencukupi. Pemesanan gagal." << endl;
 	        }
 		}
-    }
-
-    // Menyimpan ke linked list
-    Tiket* tiket = new Tiket;
-    tiket->id_pemesanan = id_pemesanan;
-    tiket->nama = nama;
-    tiket->id_jadwal = id_jadwal;
-    tiket->jml_kursi = jml_kursi;
-    tiket->status = "Belum Bayar";
-    tiket->next = NULL;
-    
-    if (headTiket == NULL) {
-        headTiket = tiket;
-    } else {
-        Tiket* temp = headTiket;
-        while (temp->next != NULL) {
-            temp = temp->next;
-        }
-        temp->next = tiket;
     }
     
     cout << "\nTekan Enter Untuk Kembali ke Menu Utama...";
@@ -196,6 +207,7 @@ void pesanTiket(Transportasi data[], int jumlahData){
 	system("CLS");
 }
 
+//Funngsi pembayaran tiket
 void pembayaranTiket(Transportasi data[], int jumlahData, queue<Tiket*> &queuePembayaran){
 	Tiket* temp = headTiket;
 	int id_pemesanan;
@@ -227,7 +239,7 @@ void pembayaranTiket(Transportasi data[], int jumlahData, queue<Tiket*> &queuePe
 				 << "|" << setw(10) << temp->nama
 				 << "|" << setw(20) << transportasi
 				 << "|" << setw(15) << tujuan
-				 << "|" << setw(15) << temp->id_jadwal
+				 << "|" << setw(15) << temp->jml_kursi
 				 << "|" << setw(15) << temp->status << "|" << endl;
 			cout << "-------------------------------------------------------------------------------------------------" << endl;	
 		}
@@ -244,11 +256,11 @@ void pembayaranTiket(Transportasi data[], int jumlahData, queue<Tiket*> &queuePe
 			if (temp->id_pemesanan == id_pemesanan) {
 				ditemukan = true;
 				temp->status = "Sudah Bayar";
-				cout << "Tiket dari ID Pemesanan:" << temp->id_pemesanan << "Berhasil Dibayar" << endl;
+				cout << "Tiket dari ID Pemesanan: " << temp->id_pemesanan << " Sudah Dibayar" << endl;
 				queuePembayaran.push(temp);
 				
-				Tiket* t = queuePembayaran.front();
-				cout << "Nama: " << t->nama << ", Status: " << t->status << endl;
+//				Tiket* t = queuePembayaran.front();
+//				cout << "Nama: " << t->nama << ", Status: " << t->status << endl;
 
 				break;
 			}
@@ -264,6 +276,34 @@ void pembayaranTiket(Transportasi data[], int jumlahData, queue<Tiket*> &queuePe
 	system("CLS");
 }
 
+void prosesAntrian(queue<Tiket*>& queuePembayaran) {
+	if (queuePembayaran.empty()) {
+        cout << "Tidak ada penumpang dalam antrian keberangkatan." << endl;
+    } else {
+        cout << "Memproses antrian keberangkatan..." << endl;
+        while (!queuePembayaran.empty()) {
+            Tiket* pemesan = queuePembayaran.front();
+            queuePembayaran.pop(); // keluarkan dari antrian
+            pemesan->status = "Selesai";
+
+            // Tampilkan data penumpang yang diproses
+            cout << "---------------------------------------------" << endl;
+            cout << "ID Pemesanan : " << pemesan->id_pemesanan << endl;
+            cout << "Nama         : " << pemesan->nama << endl;
+            cout << "ID Jadwal    : " << pemesan->id_jadwal << endl;
+            cout << "Jumlah Kursi : " << pemesan->jml_kursi << endl;
+            cout << "Status       : " << pemesan->status << endl;
+        }
+        cout << "Antrian keberangkatan telah diproses." << endl;
+    }
+
+    cout << "\nTekan Enter Untuk Kembali ke Menu Utama...";
+    cin.ignore();
+    cin.get();
+    system("CLS");
+}
+
+//Fungsi pencarian pemesanan berdasarkan id pemesanan atau nama pemesan
 void pencarianPemesanan(Transportasi data[], int jumlahData) {
 	Tiket* pemesanan = headTiket;
 	int pilihan, id_pemesanan;
@@ -340,7 +380,7 @@ void pencarianPemesanan(Transportasi data[], int jumlahData) {
 			cout << "-------------------------------------------------------------------------------------------------" << endl;
 			
 			while (pemesanan != NULL) {
-				if (pemesanan->nama == nama) {
+				if (lowerCase(pemesanan->nama) == lowerCase(nama)) {
 					ditemukan = true;
 			        string tujuan = "-", transportasi = "-";
 			        for (int i = 0; i < jumlahData; i++) {
@@ -376,6 +416,7 @@ void pencarianPemesanan(Transportasi data[], int jumlahData) {
 	ditemukan = false;
 }
 
+//Fungsi peembatalan tiket pemesanan
 void pembatalanPemesanan(queue<Tiket*>& queuePembayaran, Tiket*& headTiket) {
     int id_pemesanan;
     bool ditemukan = false;
@@ -383,46 +424,45 @@ void pembatalanPemesanan(queue<Tiket*>& queuePembayaran, Tiket*& headTiket) {
     cout << "Masukkan ID Pemesanan: ";
     cin >> id_pemesanan;
 
-    // 1. Cek dan hapus dari queue pembayaran
-    queue<Tiket*> tempQueue;
-    while (!queuePembayaran.empty()) {
-        Tiket* current = queuePembayaran.front();
-        queuePembayaran.pop();
-
-        if (current->id_pemesanan == id_pemesanan) {
-            ditemukan = true;
-            cout << "Tiket dengan ID " << id_pemesanan << " dibatalkan dari antrian pembayaran.\n";
-            // Tidak dimasukkan ke tempQueue berarti dihapus
-            continue;
-        }
-
-        tempQueue.push(current);
-    }
-    queuePembayaran = tempQueue;
-
-    // Jika sudah ditemukan di queue, tidak perlu cek di linked list
-    if (ditemukan) {
-        cout << "\nTekan Enter Untuk Kembali ke Menu Utama...";
-        cin.ignore();
-        cin.get();
-        system("CLS");
-        return;
-    }
-
-    // 2. Cek dan hapus dari linked list
+    //Cari di linked list
     Tiket* current = headTiket;
-    Tiket* prev = nullptr;
+    Tiket* prev = NULL;
 
-    while (current != nullptr) {
+    while (current != NULL) {
         if (current->id_pemesanan == id_pemesanan) {
             ditemukan = true;
+
+            if (current->status == "Selesai") {
+                cout << "Pemesanan tiket tidak dapat dibatalkan karena telah Selesai.\n";
+                break;
+            }
+
+            if (current->status == "Sudah Bayar") {
+                //Hapus dari queue pembayaran
+                queue<Tiket*> tempQueue;
+                while (!queuePembayaran.empty()) {
+                    Tiket* item = queuePembayaran.front();
+                    queuePembayaran.pop();
+
+                    if (item->id_pemesanan != id_pemesanan) {
+                        tempQueue.push(item);
+                    }
+                }
+                queuePembayaran = tempQueue;
+
+                cout << "Pemesanan dengan ID " << id_pemesanan << " telah dibatalkan.\n";
+            } else if (current->status == "Belum Bayar") {
+                cout << "Pemesanan dengan ID " << id_pemesanan << " dibatalkan.\n";
+            }
+
+            //Hapus dari linked list
             if (prev == nullptr) {
-                headTiket = current->next;  // hapus head
+                headTiket = current->next;
             } else {
                 prev->next = current->next;
             }
+
             delete current;
-            cout << "Tiket dengan ID " << id_pemesanan << " dibatalkan dari daftar pemesanan.\n";
             break;
         }
 
@@ -439,7 +479,6 @@ void pembatalanPemesanan(queue<Tiket*>& queuePembayaran, Tiket*& headTiket) {
     cin.get();
     system("CLS");
 }
-
 
 int main(){
 	// Data Jadwal Transportasi
@@ -481,8 +520,9 @@ int main(){
 		cout << "1. Pencarian Daftar Jadwal Transportasi" << endl;
 		cout << "2. Pemesanan Tiket" << endl;
 		cout << "3. Pembayaran Tiket" << endl;
-		cout << "4. Pencarian Pemesanan Tiket" << endl;
-		cout << "5. Pembatalan Pemesanan Tiket" << endl;
+		cout << "4. Proses Antrian Keberangkatan" << endl;
+		cout << "5. Pencarian Pemesanan Tiket" << endl;
+		cout << "6. Pembatalan Pemesanan Tiket" << endl;
 		cout << "0. Keluar" << endl;
 		cout << "Masukkan Pilihan Anda: ";
 		cin >> pilihan;
@@ -502,9 +542,13 @@ int main(){
 				break;
 			case 4:
 				system("CLS");
-				pencarianPemesanan(dataTransportasi, jumlahDataTransportasi);
+				prosesAntrian(queuePembayaran);
 				break;
 			case 5:
+				system("CLS");
+				pencarianPemesanan(dataTransportasi, jumlahDataTransportasi);
+				break;
+			case 6:
 				system("CLS");
 				pembatalanPemesanan(queuePembayaran, headTiket);
 				break;
