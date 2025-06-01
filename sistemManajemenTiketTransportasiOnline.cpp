@@ -2,7 +2,6 @@
 #include <iomanip>
 #include <queue>
 #include <algorithm>
-#include <cctype>
 using namespace std;
 
 //Struct Transportasi
@@ -44,12 +43,14 @@ void pencarianJadwal(Transportasi data[], int jumlahData){
 	string tujuan, waktu;
 	
 	do {
+		cout << "=== Pencarian Jadwal ===" << endl;
 		cout << "Mencari berdasarkan:" << endl;
 		cout << "1. Tujuan" << endl;
 		cout << "2. Waktu Keberangkatan" << endl;
 		cout << "0. Keluar" << endl;
 		cout << "Masukkan Pilihan Anda: ";
 		cin >> jawab;
+		jumlahDitemukan = 0;
 		
 		switch (jawab){
 			case 1:
@@ -64,7 +65,7 @@ void pencarianJadwal(Transportasi data[], int jumlahData){
 					 << "|" << setw(20) << "Jenis Transportasi"
 				     << "|" << setw(15) << "Tujuan"
 				     << "|" << setw(15) << "Waktu Berangkat" 
-				     << "|" << setw(10) << "Kapasitas" << "|" << endl;
+				     << "|" << setw(10) << "Kuota" << "|" << endl;
 				cout << string(76, '-') << endl;
 				
 				for(int i=0; i<jumlahData; i++){
@@ -141,6 +142,7 @@ void pesanTiket(Transportasi data[], int jumlahData){
 	int id_pemesanan, id_jadwal, jml_kursi;
 	string nama;
 	
+	cout << "=== Pemesanan Tiket ===" << endl;
 	cout << "Masukkan ID Pemesanan: ";
 	cin >> id_pemesanan;
     cin.ignore();
@@ -421,6 +423,7 @@ void pembatalanPemesanan(queue<Tiket*>& queuePembayaran, Tiket*& headTiket) {
     int id_pemesanan;
     bool ditemukan = false;
 
+	cout << "=== Pembatalan Pemesanan Tiket ===" << endl;
     cout << "Masukkan ID Pemesanan: ";
     cin >> id_pemesanan;
 
@@ -433,7 +436,7 @@ void pembatalanPemesanan(queue<Tiket*>& queuePembayaran, Tiket*& headTiket) {
             ditemukan = true;
 
             if (current->status == "Selesai") {
-                cout << "Pemesanan tiket tidak dapat dibatalkan karena telah Selesai.\n";
+                cout << "Pemesanan tiket dengan id pemesanan " << id_pemesanan << " tidak dapat dibatalkan karena telah Selesai.\n";
                 break;
             }
 
@@ -501,7 +504,7 @@ int main(){
 			 << "|" << setw(20) << "Jenis Transportasi"
 			 << "|" << setw(15) << "Tujuan"
 			 << "|" << setw(15) << "Waktu Berangkat" 
-			 << "|" << setw(10) << "Kapasitas" << "|" << endl;
+			 << "|" << setw(10) << "Kuota" << "|" << endl;
 		cout << string(76, '-') << endl;
 		
 		for(int i=0; i < jumlahDataTransportasi; i++){			 
@@ -553,7 +556,7 @@ int main(){
 				pembatalanPemesanan(queuePembayaran, headTiket);
 				break;
 			case 0:
-				cout << "Keluar dari Program. Terima Kasih!";
+				cout << "\nKeluar dari Program. Terima Kasih!";
 				break;
 			default:
 				cout << "Pilihan tidak valid. Silakan coba lagi!";
