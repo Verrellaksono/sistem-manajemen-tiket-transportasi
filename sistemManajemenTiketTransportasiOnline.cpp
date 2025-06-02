@@ -10,6 +10,7 @@ struct Transportasi{
 	string jenis_transportasi;
 	string tujuan;
 	string waktu_berangkat;
+	int harga;
 	int kapasitas;
 };
 
@@ -19,6 +20,7 @@ struct Tiket{
 	string nama;
 	int id_jadwal;
 	int jml_kursi;
+	int totalHarga;
 	string status;
 	Tiket* next;
 };
@@ -38,7 +40,7 @@ string lowerCase(string teks) {
 }
 
 //Fungsi Menampilkan Jadwal Tranportasi Berdasarkan Tujuan atau Waktu Keberangkatan
-void pencarianJadwal(Transportasi data[], int jumlahData){
+void pencarianJadwal(Transportasi data[], int jumlahData, int panjangTabel){
 	int jawab, jumlahDitemukan;
 	string tujuan, waktu;
 	
@@ -60,13 +62,14 @@ void pencarianJadwal(Transportasi data[], int jumlahData){
 			    
 			    // Header Table
 				cout << left;
-				cout << string(76, '-') << endl;
+				cout << string(panjangTabel, '-') << endl;
 				cout << "|" << setw(10) << "ID Jadwal"
 					 << "|" << setw(20) << "Jenis Transportasi"
 				     << "|" << setw(15) << "Tujuan"
 				     << "|" << setw(15) << "Waktu Berangkat" 
+				     << "|" << setw(15) << "Harga" 
 				     << "|" << setw(10) << "Kuota" << "|" << endl;
-				cout << string(76, '-') << endl;
+				cout << string(panjangTabel, '-') << endl;
 				
 				for(int i=0; i<jumlahData; i++){
 					if(lowerCase(data[i].tujuan) == lowerCase(tujuan)){		 
@@ -75,9 +78,10 @@ void pencarianJadwal(Transportasi data[], int jumlahData){
 							 << "|" << setw(20) << data[i].jenis_transportasi
 				         	 << "|" << setw(15) << data[i].tujuan
 				         	 << "|" << setw(15) << data[i].waktu_berangkat
+				         	 << "|" << setw(15) << data[i].harga
 				        	 << "|" << setw(10) << data[i].kapasitas << "|" << endl;
 				        // Footer Tabel
-						cout << string(76, '-') << endl;
+						cout << string(panjangTabel, '-') << endl;
 				        jumlahDitemukan++;
 					}
 				}
@@ -97,13 +101,14 @@ void pencarianJadwal(Transportasi data[], int jumlahData){
 				
 				// Header Table
 				cout << left;
-				cout << string(76, '-') << endl;
+				cout << string(panjangTabel, '-') << endl;
 				cout << "|" << setw(10) << "ID Jadwal"
 					 << "|" << setw(20) << "Jenis Transportasi"
 				     << "|" << setw(15) << "Tujuan"
-				     << "|" << setw(15) << "Waktu Berangkat" 
+				     << "|" << setw(15) << "Waktu Berangkat"
+				     << "|" << setw(15) << "Harga"
 				     << "|" << setw(10) << "Kapasitas" << "|" << endl;
-				cout << string(76, '-') << endl;
+				cout << string(panjangTabel, '-') << endl;
 				
 				for(int i=0; i<jumlahData; i++){
 					if(data[i].waktu_berangkat == waktu){
@@ -112,6 +117,7 @@ void pencarianJadwal(Transportasi data[], int jumlahData){
 							 << "|" << setw(20) << data[i].jenis_transportasi
 				         	 << "|" << setw(15) << data[i].tujuan
 				         	 << "|" << setw(15) << data[i].waktu_berangkat
+				         	 << "|" << setw(15) << data[i].harga
 				        	 << "|" << setw(10) << data[i].kapasitas << "|" << endl;
 				        jumlahDitemukan++;
 					}
@@ -139,7 +145,7 @@ void pencarianJadwal(Transportasi data[], int jumlahData){
 //Fungsi untuk pemesanan tiket
 void pesanTiket(Transportasi data[], int jumlahData){
 	//Variabel
-	int id_pemesanan, id_jadwal, jml_kursi;
+	int id_pemesanan, id_jadwal, jml_kursi, totalHarga = 0;
 	string nama;
 	
 	cout << "=== Pemesanan Tiket ===" << endl;
@@ -177,7 +183,12 @@ void pesanTiket(Transportasi data[], int jumlahData){
         if(data[i].id_jadwal == id_jadwal){
         	if (data[i].kapasitas >= jml_kursi) {
 	            data[i].kapasitas -= jml_kursi;
-	            cout << "Pemesanan berhasil!" << endl;
+	            // Total Harga
+	            totalHarga = data[i].harga * jml_kursi;
+	            
+	            cout << "Total Harga: Rp. " << totalHarga << endl;
+				cout << "Pemesanan berhasil!" << endl;
+	            
 	            
 	            // Menyimpan ke linked list
 			    Tiket* tiket = new Tiket;
@@ -185,6 +196,7 @@ void pesanTiket(Transportasi data[], int jumlahData){
 			    tiket->nama = nama;
 			    tiket->id_jadwal = id_jadwal;
 			    tiket->jml_kursi = jml_kursi;
+			    tiket->totalHarga = totalHarga;
 			    tiket->status = "Belum Bayar";
 			    tiket->next = NULL;
 			    
@@ -214,15 +226,17 @@ void pembayaranTiket(Transportasi data[], int jumlahData, queue<Tiket*> &queuePe
 	Tiket* temp = headTiket;
 	int id_pemesanan;
 	bool ditemukan = false, belumBayar = false;
+	int panjangTabel = 113;
 	
-	cout << "-------------------------------------------------------------------------------------------------" << endl;
+	cout << string(panjangTabel, '-') << endl;
 	cout << "|" << setw(15) << "ID Pemesanan"
 		 << "|" << setw(10) << "Nama"
 		 << "|" << setw(20) << "Jenis Transportasi"
 		 << "|" << setw(15) << "Tujuan"
 		 << "|" << setw(15) << "Jumlah Kursi"
+		 << "|" << setw(15) << "Total Harga"
 		 << "|" << setw(15) << "Status" << "|" << endl;
-	cout << "-------------------------------------------------------------------------------------------------" << endl;
+	cout << string(panjangTabel, '-') << endl;
 	
 	//Menampilkan data pesanan tiket
 	while (temp != NULL){
@@ -242,8 +256,9 @@ void pembayaranTiket(Transportasi data[], int jumlahData, queue<Tiket*> &queuePe
 				 << "|" << setw(20) << transportasi
 				 << "|" << setw(15) << tujuan
 				 << "|" << setw(15) << temp->jml_kursi
+				 << "|" << setw(15) << temp->totalHarga
 				 << "|" << setw(15) << temp->status << "|" << endl;
-			cout << "-------------------------------------------------------------------------------------------------" << endl;	
+			cout << string(panjangTabel, '-') << endl;	
 		}
 		temp = temp->next;	
 	}
@@ -260,10 +275,6 @@ void pembayaranTiket(Transportasi data[], int jumlahData, queue<Tiket*> &queuePe
 				temp->status = "Sudah Bayar";
 				cout << "Tiket dari ID Pemesanan: " << temp->id_pemesanan << " Sudah Dibayar" << endl;
 				queuePembayaran.push(temp);
-				
-//				Tiket* t = queuePembayaran.front();
-//				cout << "Nama: " << t->nama << ", Status: " << t->status << endl;
-
 				break;
 			}
 			temp = temp->next;
@@ -294,6 +305,7 @@ void prosesAntrian(queue<Tiket*>& queuePembayaran) {
             cout << "Nama         : " << pemesan->nama << endl;
             cout << "ID Jadwal    : " << pemesan->id_jadwal << endl;
             cout << "Jumlah Kursi : " << pemesan->jml_kursi << endl;
+            cout << "Total Harga  : " << pemesan->totalHarga << endl;
             cout << "Status       : " << pemesan->status << endl;
         }
         cout << "Antrian keberangkatan telah diproses." << endl;
@@ -487,25 +499,27 @@ int main(){
 	// Data Jadwal Transportasi
 	int jumlahDataTransportasi = 6;
 	Transportasi dataTransportasi[jumlahDataTransportasi] = {
-	    {101, "Bus", "Bandung", "08:00", 10},
-	    {102, "Kereta", "Yogyakarta", "12:30", 300},
-	    {103, "Pesawat", "Jakarta", "17:45", 150},
-	    {104, "Bus", "Semarang", "06:15", 45},
-	    {105, "Kereta", "Surabaya", "10:00", 350},
-	    {106, "Pesawat", "Lombok", "14:20", 180}
+	    {101, "Bus", "Bandung", "08:00", 130000, 10},
+	    {102, "Kereta", "Yogyakarta", "12:30", 250000, 300},
+	    {103, "Pesawat", "NTT", "17:45", 2000000, 150},
+	    {104, "Bus", "Semarang", "06:15", 200000, 45},
+	    {105, "Kereta", "Surabaya", "10:00", 350000, 350},
+	    {106, "Pesawat", "Lombok", "14:20", 1800000, 180}
 	};
 	int pilihan;
 	
 	do{
 		//Table Semua Jadwal
+		int panjangTabel = 92;
 		cout << left;
-		cout << string(76, '-') << endl;
+		cout << string(panjangTabel, '-') << endl;
 		cout << "|" << setw(10) << "ID Jadwal"
 			 << "|" << setw(20) << "Jenis Transportasi"
 			 << "|" << setw(15) << "Tujuan"
-			 << "|" << setw(15) << "Waktu Berangkat" 
+			 << "|" << setw(15) << "Waktu Berangkat"
+			 << "|" << setw(15) << "Harga"
 			 << "|" << setw(10) << "Kuota" << "|" << endl;
-		cout << string(76, '-') << endl;
+		cout << string(panjangTabel, '-') << endl;
 		
 		for(int i=0; i < jumlahDataTransportasi; i++){			 
 			// Data Tabel
@@ -513,9 +527,10 @@ int main(){
 				<< "|" << setw(20) << dataTransportasi[i].jenis_transportasi
 			    << "|" << setw(15) << dataTransportasi[i].tujuan
 			    << "|" << setw(15) << dataTransportasi[i].waktu_berangkat
+			    << "|" << setw(15) << dataTransportasi[i].harga
 			    << "|" << setw(10) << dataTransportasi[i].kapasitas << "|" << endl;
 			// Footer Tabel
-			cout << string(76, '-') << endl;
+			cout << string(panjangTabel, '-') << endl;
 		}
 		
 		//Menu Utama
@@ -533,7 +548,7 @@ int main(){
 		switch(pilihan){
 			case 1:
 				system("CLS");
-				pencarianJadwal(dataTransportasi, jumlahDataTransportasi);
+				pencarianJadwal(dataTransportasi, jumlahDataTransportasi, panjangTabel);
 				break;
 			case 2:
 				system("CLS");
